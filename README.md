@@ -3,8 +3,6 @@ An attempt at solving the Multiple Travelling Salesman Problem.
 
 This project was made for the Pravega Hackathon - 2021.
 
-python-tsp is a python implementation for solving the Travelling Salesman Problem. https://pypi.org/project/python-tsp/
-
 Please refer to 'Project on MTSP - Pravega.pdf' for details regarding how the code works.
 
 # Running the program
@@ -31,3 +29,9 @@ There are three modes to run the program:
 # Known issues
 
 1)  The program returns an error for certain node positions and sector numbers.
+
+# Credits
+
+This project was done in collaboration with Agamdeep Singh.
+
+python-tsp is a python implementation for solving the Travelling Salesman Problem. https://pypi.org/project/python-tsp/
