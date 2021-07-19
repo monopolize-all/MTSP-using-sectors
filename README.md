@@ -9,13 +9,17 @@ Please refer to 'Project on MTSP - Pravega.pdf' for details regarding how the co
 
 To run the program, first clone this repository to a local directory.
 
-Then run the following command in a terminal pointing to this directory to install all required dependencies:
+Then run the following command in a terminal opened from this directory to install all required dependencies:
 
-'''
+```
 pip install -r requirements.txt
-'''
+```
 
-Finally run general_line_division.py and input the parameters to see the program in action.
+Finally run general_line_division.py from the same terminal and input the parameters to see the program in action.
+
+```
+python general_line_division.py
+```
 
 # Implementation
 
