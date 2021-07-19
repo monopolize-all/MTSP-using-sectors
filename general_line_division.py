@@ -450,7 +450,7 @@ if __name__ == "__main__":
     if input_mode == "m":
         node_positions = eval(input("Enter node positions as a list of tuple positions: "))
         number_of_nodes = len(node_positions)
-        number_of_sectors = int(input("Enter number of lines to draw: "))
+        number_of_sectors = int(input("Enter number of sectors: "))
 
         window_surface = pygame_init()
 
@@ -462,7 +462,7 @@ if __name__ == "__main__":
             number_of_sectors = 5
         else:
             number_of_nodes = int(input("Enter number of nodes to generate: "))
-            number_of_sectors = int(input("Enter number of lines to draw: "))
+            number_of_sectors = int(input("Enter number of sectors: "))
 
         node_positions = generate_node_position(number_of_nodes)
         
