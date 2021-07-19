@@ -38,6 +38,9 @@ INDIGO = (75, 0, 130)
 VIOLET = (148, 0, 211)
 # endregion
 
+BACKGROUND_COLOUR = BLACK
+FOREGROUND_COLOUR = WHITE
+
 # region sprites
 
 ui_to_blit = pygame.sprite.Group()
@@ -48,7 +51,7 @@ class FPS_label(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
     def update(self):
-        self.image = FONT.render(str(int(clock.get_fps())), True, BLACK)
+        self.image = FONT.render(str(int(clock.get_fps())), True, FOREGROUND_COLOUR)
         self.rect = self.image.get_rect(bottomright = window_size)
 
 ui_to_blit.add(FPS_label())
@@ -62,7 +65,7 @@ class Node(pygame.sprite.Sprite):
     def __init__(self, node_position, node_color):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((node_size, node_size))
-        self.image.fill(WHITE)
+        self.image.fill(BACKGROUND_COLOUR)
         pygame.draw.circle(self.image, node_color, (node_size//2, node_size//2), node_size//2)
         self.position = node_position
         self.rect = self.image.get_rect(center = self.position)
@@ -75,7 +78,7 @@ class Node(pygame.sprite.Sprite):
 
 lines_to_blit = []  # Add (line_start, line_stop, line_color) tuples here
 
-def add_to_lines_to_blit(line_start, line_stop, line_color = BLACK):
+def add_to_lines_to_blit(line_start, line_stop, line_color = FOREGROUND_COLOUR):
     global update_required
     update_required = True
     lines_to_blit.append((line_start, line_stop, line_color))
@@ -129,7 +132,7 @@ def window_loop_iteration():
             function()
                 
     if update_required:
-        window_surface.fill(WHITE)
+        window_surface.fill(BACKGROUND_COLOUR)
 
         draw_lines()
         sprites_to_blit.update()
