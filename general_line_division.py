@@ -304,7 +304,8 @@ def generate_possible_place_switches_sorted_on_varance_of_sector_weights(possibl
     for place_switch in possible_place_switches.return_keys():
         if place_switch:
             start, element, stop = place_switch
-            print(start.sector_color, element.place_position, stop.sector_color)
+            if DEBUG:
+                print(start.sector_color, element.place_position, stop.sector_color)
 
 def draw_lines_seperating_sectors():
     remove_lines_to_blit()
@@ -464,7 +465,7 @@ if __name__ == "__main__":
             number_of_sectors = int(input("Enter number of lines to draw: "))
 
         node_positions = generate_node_position(number_of_nodes)
-
+        
         print("Node positions:", node_positions)
 
         window_surface = pygame_init()
