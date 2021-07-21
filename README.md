@@ -36,6 +36,6 @@ There are three modes to run the program:
 
 # Credits
 
-This project was done in collaboration with Agamdeep Singh.
+This project was done in collaboration with Agamdeep Singh(https://github.com/jnash10).
 
 python-tsp is a python implementation for solving the Travelling Salesman Problem. https://pypi.org/project/python-tsp/
