@@ -1,5 +1,10 @@
-from typing import Iterable
 import numpy, math
+
+from typing import Iterable
+from python_tsp.exact import solve_tsp_dynamic_programming
+
+
+DEBUG = False
 
 
 class Village:
@@ -9,7 +14,7 @@ class Village:
         self.position = position
         self.warehouse_position = warehouse_position
 
-        self.weight = numpy.linalg.norm(self.postion - self.warehouse_position)
+        self.weight = numpy.linalg.norm(self.position - self.warehouse_position)
 
     def get_angle_to_warehouse(self):
         x, y = self.position - self.warehouse_position
@@ -42,13 +47,35 @@ class Sector:
 
     def get_weight_on_add_village(self, village):
         if village in self.villages:
-            raise Exception("Unable to add village to sector as it's already in the sector.")
+            exception_message = f"""Unable to add village to sector as it's already in the sector.
+            Villages in sector: {[village.position for village in self.villages]}
+            Village trying to be added: {village.position}
+            """
+            raise Exception(exception_message)
+
+        if DEBUG:
+            debug_message = f"""Temporarily adding village to sector.
+            Villages in sector: {[village.position for village in self.villages]}
+            Village being added: {village.position}
+            """
+            print(debug_message)
 
         return self.weight + village.weight
 
     def get_weight_on_remove_village(self, village):
         if village not in self.villages:
-            raise Exception("Unable to remove village from sector as it's not in the sector.")
+            exception_message = f"""Unable to remove village from sector as it's not in the sector.
+            Villages in sector: {[village.position for village in self.villages]}
+            Village trying to be removed: {village.position}
+            """
+            raise Exception(exception_message)
+
+        if DEBUG:
+            debug_message = f"""Temporarily removing village from sector.
+            Villages in sector: {[village.position for village in self.villages]}
+            Village being removed: {village.position}
+            """
+            print(debug_message)
 
         return self.weight - village.weight
 
@@ -63,7 +90,11 @@ class Sector:
             self.villages.append(village)
 
         else:
-            raise Exception("Unable to add village as its not adjacent to the sector.")
+            exception_message = f"""Unable to add village as its not adjacent to the sector.
+            Villages in sector: {[village.position for village in self.villages]}
+            Village trying to be added: {village.position}
+            """
+            raise Exception(exception_message)
 
         self.weight = new_sector_weight
 
@@ -78,9 +109,36 @@ class Sector:
             self.villages.pop(-1)
 
         else:
-            raise Exception("Unable to remove village as its not at one of the extremes of the sector.")
+            exception_message = f"""Unable to remove village as its not at one of the extremes of the sector.
+            Villages in sector: {[village.position for village in self.villages]}
+            Village trying to be removed: {village.position}
+            """
+            raise Exception(exception_message)
 
         self.weight = new_sector_weight
+
+
+class TSP:
+
+    def __init__(self, points):
+        self.points = points
+
+    def get_square_of_distance_between_points(self, p1, p2):
+        return (p1[0]-p2[0]) ** 2 + (p1[1]-p2[1]) ** 2
+
+    def get_distance_matrix_from_points(self, points):
+        distance_matrix = numpy.asarray([[self.get_square_of_distance_between_points(p1, p2) for p2 in points] for p1 in points])
+        return distance_matrix
+        
+    def solve(self):
+        distance_matrix = self.get_distance_matrix_from_points(self.points)  # Note that each distance here is squared everywhere
+        distance_matrix[:, 0] = 0
+
+        permutation = solve_tsp_dynamic_programming(distance_matrix)[0]
+
+        solution = [self.points[point_index] for point_index in permutation]
+
+        return solution
 
 
 class MTSP:
@@ -89,6 +147,8 @@ class MTSP:
         """
         village_positions is an iterable(list/tuple) of positions of all the villages.
         """
+
+        self.warehouse_position = warehouse_position
 
         self.village_positions = village_positions
         self.number_of_villages = len(self.village_positions)
@@ -103,10 +163,11 @@ class MTSP:
         self.initialise_sectors()
 
     def get_fixed_village_positions(self):
-
+        self.fixed_village_positions = []
         # Convert the positions from a normal iterable to a numpy array.
+
         for index in range(self.number_of_villages):
-            self.fixed_village_positions[index] = numpy.array(self.village_positions[index])
+            self.fixed_village_positions.append(numpy.array(self.village_positions[index]))
 
         # Find the bounding rectangle for the village_positions
         bottom_left_point = numpy.amin(self.village_positions, axis = 0)
@@ -125,9 +186,9 @@ class MTSP:
         self.villages.sort(key = lambda village: village.get_angle_to_warehouse())
 
     def set_adjacent_villages_for_each_village(self):
-        for index in range(self.number_of_villages):
-            village_to_clockwise = self.villages[index-1]
-            village_to_anticlockwise = self.villages[index+1]
+        for index in range(self.number_of_villages - 1):
+            village_to_clockwise = self.villages[index - 1]
+            village_to_anticlockwise = self.villages[index + 1]
             self.villages[index].set_adjacent_villages(village_to_clockwise, village_to_anticlockwise)
 
         self.villages[0].set_adjacent_villages(self.villages[-1], self.villages[1])
@@ -139,10 +200,15 @@ class MTSP:
         self.villages_per_sector = self.number_of_villages // self.number_of_sectors
 
         current_village_index = 0
-        for index in range(self.villages_per_sector):
-            villages_in_sector = self.villages[current_village_index, current_village_index + self.villages_per_sector]
+        while current_village_index < self.number_of_villages:
+            current_village_index_limit = current_village_index + self.villages_per_sector
 
-            current_village_index += self.villages_per_sector
+            if current_village_index_limit > self.number_of_villages:
+                current_village_index_limit = self.number_of_villages
+
+            villages_in_sector = self.villages[current_village_index:current_village_index_limit]
+
+            current_village_index = current_village_index_limit
 
             self.sectors.append(Sector(villages_in_sector))
 
@@ -155,21 +221,20 @@ class MTSP:
         """
         sector_weights = [sector.get_weight() for sector in self.sectors]
 
-        self.minimum_sector_weights_variance = self.get_variance_in_weights_of_sectors(sector_weights)
+        self.minimum_sector_weights_variance = self.get_variance_in_sector_weights(sector_weights)
         self.village_shifted_for_minimum_variance = None
         self.sector_village_shifted_from_for_minimum_variance = None
         self.sector_village_shifted_to_for_minimum_variance = None
 
         # NOTE: CHECK IF BELOW CODE WORKS!!!
 
-        for sector_index in self.number_of_sectors:
-
-            village_shifted: Village = self.sectors[sector_index - 1].villages[sector_index - 1]
+        for sector_index in range(self.number_of_sectors):
+            village_shifted: Village = self.sectors[sector_index - 1].villages[-1]
             sector_village_shifted_from: Sector = self.sectors[sector_index - 1]
             sector_village_shifted_to: Sector = self.sectors[sector_index]
             old_sector_weights = sector_weights[sector_index - 1], sector_weights[sector_index]
             sector_weights[sector_index - 1] = sector_village_shifted_from.get_weight_on_remove_village(village_shifted)
-            sector_weights[sector_index] = sector_village_shifted_from.get_weight_on_add_village(village_shifted)
+            sector_weights[sector_index] = sector_village_shifted_to.get_weight_on_add_village(village_shifted)
 
             sector_weights_variance = self.get_variance_in_sector_weights(sector_weights)
             if sector_weights_variance < self.minimum_sector_weights_variance:
@@ -187,10 +252,9 @@ class MTSP:
         Returns False if no village can be shifted for lower sector weigth variance.
         """
         self.compare_village_switches()
-
-        if self.minimum_sector_village_shifted:
-            self.sector_village_shifted_from_for_minimum_variance.remove_village(self.minimum_sector_village_shifted)
-            self.sector_village_shifted_to_for_minimum_variance.add_village(self.minimum_sector_village_shifted)
+        if self.village_shifted_for_minimum_variance:
+            self.sector_village_shifted_from_for_minimum_variance.remove_village(self.village_shifted_for_minimum_variance)
+            self.sector_village_shifted_to_for_minimum_variance.add_village(self.village_shifted_for_minimum_variance)
             return True
 
         else:
@@ -200,6 +264,13 @@ class MTSP:
         while self.shift_village_giving_smallest_sector_weight_variance():
             pass
 
-        result = [[village.position for village in sector.villages] for sector in self.sectors]
+        solution = []
 
-        return result
+        for sector in self.sectors:
+            sector_village_positions = [village.position for village in sector.villages]
+
+            sector_village_positions.insert(0, self.warehouse_position)
+
+            solution.append(TSP(sector_village_positions).solve())
+
+        return solution
