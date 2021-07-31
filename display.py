@@ -24,12 +24,14 @@ def show_plot():
     pyplot.show()
 
 def show_villages(axes_limits, warehouse_position, village_positions):
+    pyplot.title("Villages and Warehouse locations.")
     set_axes_limits(*axes_limits)
     plot_warehouse(warehouse_position)
     plot_villages(village_positions)
     show_plot()
 
-def show_sectors(axes_limits, warehouse_position, sectors):
+def show_sectors(axes_limits, warehouse_position, sectors, step):
+    pyplot.title(f"Sectors: Step {step}")
     set_axes_limits(*axes_limits)
     for sector in sectors:
         village_positions = [village.position for village in sector.villages]
@@ -38,6 +40,7 @@ def show_sectors(axes_limits, warehouse_position, sectors):
     show_plot()
 
 def show_solution(axes_limits, solution, warehouse_position, sectors):
+    pyplot.title("Final routes.")
     set_axes_limits(*axes_limits)
     for sector in sectors:
         village_positions = [village.position for village in sector.villages]

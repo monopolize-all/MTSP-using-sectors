@@ -119,8 +119,13 @@ def solve_MTSP():
         display.show_villages(AXES_LIMITS, warehouse_position, village_positions)
     
     if show_display_for_each_step.get():
+        global sectors_processing_step_count
+        sectors_processing_step_count = 0
+        
         def display_function(sectors):
-            display.show_sectors(AXES_LIMITS, warehouse_position, sectors)
+            global sectors_processing_step_count
+            display.show_sectors(AXES_LIMITS, warehouse_position, sectors, sectors_processing_step_count)
+            sectors_processing_step_count += 1
         solution = mtsp.solve_showing_each_step(display_function)
 
     else:
