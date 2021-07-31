@@ -64,11 +64,16 @@ def generate_random_village_positions(number_of_villages):
     return village_positions
 
 def generate_random_warehouse_position():
-    warehouse_position = random.randint(0, MAP_SIZE_FOR_RANDOM_GENERATION), random.randint(0, MAP_SIZE_FOR_RANDOM_GENERATION)
+    #warehouse_position = random.randint(0, MAP_SIZE_FOR_RANDOM_GENERATION), random.randint(0, MAP_SIZE_FOR_RANDOM_GENERATION)
+    x1, y1 = MAP_SIZE_FOR_RANDOM_GENERATION//4, MAP_SIZE_FOR_RANDOM_GENERATION//4
+    x2, y2 = MAP_SIZE_FOR_RANDOM_GENERATION*3//4, MAP_SIZE_FOR_RANDOM_GENERATION*3//4
+    warehouse_position = random.randint(x1, x2), random.randint(y1, y2)
     
     return warehouse_position
 
 AXES_PADDING = 20
+#AXES_LIMITS = [[0 - AXES_PADDING, MAP_SIZE_FOR_RANDOM_GENERATION + AXES_PADDING],
+#                [0 - AXES_PADDING, MAP_SIZE_FOR_RANDOM_GENERATION + AXES_PADDING]]
 def solve_MTSP():
     
     if village_positions_generation_mode.get() == "Automatic":
@@ -96,26 +101,33 @@ def solve_MTSP():
         warehouse_position = data["warehouse position"]
         number_of_sectors = int(number_of_sectors_entry.get())
 
-    mtsp = MTSP.MTSP(village_positions, warehouse_position, number_of_sectors)
+    all_points = list(village_positions) + [warehouse_position]
+    
+    min_x = min(all_points, key = lambda point: point[0])[0]
+    min_y = min(all_points, key = lambda point: point[1])[1]
+    max_x = max(all_points, key = lambda point: point[0])[0]
+    max_y = max(all_points, key = lambda point: point[1])[1]
 
-    axes_limits = [[mtsp.bottom_left_point[0] - AXES_PADDING, mtsp.top_right_point[0] + AXES_PADDING],
-                    [mtsp.bottom_left_point[1] - AXES_PADDING, mtsp.top_right_point[1] + AXES_PADDING]]
+    AXES_LIMITS = [[min_x - AXES_PADDING, max_x + AXES_PADDING],
+                [min_y - AXES_PADDING, max_y + AXES_PADDING]]
+
+    mtsp = MTSP.MTSP(village_positions, warehouse_position, number_of_sectors)
     
     window.update()
 
     if show_display.get():
-        display.show_villages(axes_limits, warehouse_position, village_positions)
+        display.show_villages(AXES_LIMITS, warehouse_position, village_positions)
     
     if show_display_for_each_step.get():
         def display_function(sectors):
-            display.show_sectors(axes_limits, warehouse_position, sectors)
+            display.show_sectors(AXES_LIMITS, warehouse_position, sectors)
         solution = mtsp.solve_showing_each_step(display_function)
 
     else:
         solution = mtsp.solve_quickly()
 
     if show_display.get():
-        display.show_solution(axes_limits, solution, warehouse_position, mtsp.sectors)
+        display.show_solution(AXES_LIMITS, solution, warehouse_position, mtsp.sectors)
 
 def on_show_display():
     if show_display.get():

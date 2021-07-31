@@ -1,7 +1,8 @@
-import numpy, math
-
+from math import atan2
+from statistics import variance
 from typing import Iterable
 from python_tsp.exact import solve_tsp_dynamic_programming
+from numpy import asarray as numpy_asarray
 
 
 DEBUG = False
@@ -14,11 +15,12 @@ class Village:
         self.position = position
         self.warehouse_position = warehouse_position
 
-        self.weight = numpy.linalg.norm(self.position - self.warehouse_position)
+        self.weight = TSP.get_square_of_distance_between_points(self.position, self.warehouse_position)
 
     def get_angle_to_warehouse(self):
-        x, y = self.position - self.warehouse_position
-        return math.atan2(y, x)
+        x = self.position[0] - self.warehouse_position[0]
+        y = self.position[1] - self.warehouse_position[1]
+        return atan2(y, x)
 
     def set_adjacent_villages(self, village_to_clockwise, village_to_anticlockwise):
 
@@ -123,11 +125,12 @@ class TSP:
     def __init__(self, points):
         self.points = points
 
-    def get_square_of_distance_between_points(self, p1, p2):
+    @staticmethod
+    def get_square_of_distance_between_points(p1, p2):
         return (p1[0]-p2[0]) ** 2 + (p1[1]-p2[1]) ** 2
 
     def get_distance_matrix_from_points(self, points):
-        distance_matrix = numpy.asarray([[self.get_square_of_distance_between_points(p1, p2) for p2 in points] for p1 in points])
+        distance_matrix = numpy_asarray([[self.get_square_of_distance_between_points(p1, p2) for p2 in points] for p1 in points])
         return distance_matrix
         
     def solve(self):
@@ -152,31 +155,14 @@ class MTSP:
 
         self.village_positions = village_positions
         self.number_of_villages = len(self.village_positions)
-        self.get_fixed_village_positions()
 
-        self.villages = list(map(lambda position: Village(position, warehouse_position), self.fixed_village_positions))
+        self.villages = list(map(lambda position: Village(position, warehouse_position), self.village_positions))
         self.sort_villages_by_angle()
 
         self.set_adjacent_villages_for_each_village()
 
         self.number_of_sectors = number_of_sectors
         self.initialise_sectors()
-
-    def get_fixed_village_positions(self):
-        self.fixed_village_positions = []
-        # Convert the positions from a normal iterable to a numpy array.
-
-        for index in range(self.number_of_villages):
-            self.fixed_village_positions.append(numpy.array(self.village_positions[index]))
-
-        # Find the bounding rectangle for the village_positions
-        self.bottom_left_point = numpy.amin(self.village_positions, axis = 0)
-        self.top_right_point = numpy.amax(self.village_positions, axis = 0)
-
-        # Subtract bottom_left_point from all village_positions
-        self.fixed_village_positions -= self.bottom_left_point
-
-        return self.fixed_village_positions
 
     def sort_villages_by_angle(self):
         """
@@ -213,7 +199,7 @@ class MTSP:
             self.sectors.append(Sector(villages_in_sector))
 
     def get_variance_in_sector_weights(self, sector_weights):
-        return numpy.var(sector_weights)
+        return variance(sector_weights)
 
     def compare_village_switches(self):
         """
@@ -267,7 +253,8 @@ class MTSP:
         for sector in self.sectors:
             sector_village_positions = [village.position for village in sector.villages]
 
-            print(sector_village_positions)
+            if DEBUG:
+                print(sector_village_positions)
 
             sector_village_positions.insert(0, self.warehouse_position)
 

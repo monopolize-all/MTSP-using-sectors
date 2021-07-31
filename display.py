@@ -24,16 +24,12 @@ def show_plot():
     pyplot.show()
 
 def show_villages(axes_limits, warehouse_position, village_positions):
-    print(village_positions)
-
     set_axes_limits(*axes_limits)
     plot_warehouse(warehouse_position)
     plot_villages(village_positions)
     show_plot()
 
 def show_sectors(axes_limits, warehouse_position, sectors):
-    print([[list(village.position) for village in sector.villages] for sector in sectors])
-
     set_axes_limits(*axes_limits)
     for sector in sectors:
         village_positions = [village.position for village in sector.villages]
