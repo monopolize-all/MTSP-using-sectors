@@ -170,11 +170,11 @@ class MTSP:
             self.fixed_village_positions.append(numpy.array(self.village_positions[index]))
 
         # Find the bounding rectangle for the village_positions
-        bottom_left_point = numpy.amin(self.village_positions, axis = 0)
-        top_right_point = numpy.amax(self.village_positions, axis = 0)
+        self.bottom_left_point = numpy.amin(self.village_positions, axis = 0)
+        self.top_right_point = numpy.amax(self.village_positions, axis = 0)
 
         # Subtract bottom_left_point from all village_positions
-        self.fixed_village_positions -= bottom_left_point
+        self.fixed_village_positions -= self.bottom_left_point
 
         return self.fixed_village_positions
 
@@ -260,17 +260,31 @@ class MTSP:
         else:
             return False
 
-    def solve(self):
-        while self.shift_village_giving_smallest_sector_weight_variance():
-            pass
+    def do_tsp_for_each_sector(self):
 
         solution = []
 
         for sector in self.sectors:
             sector_village_positions = [village.position for village in sector.villages]
 
+            print(sector_village_positions)
+
             sector_village_positions.insert(0, self.warehouse_position)
 
             solution.append(TSP(sector_village_positions).solve())
 
         return solution
+
+    def solve_quickly(self):
+        while self.shift_village_giving_smallest_sector_weight_variance():
+            pass
+
+        return self.do_tsp_for_each_sector()
+
+    def solve_showing_each_step(self, display_function):
+        display_function(self.sectors)
+
+        while self.shift_village_giving_smallest_sector_weight_variance():
+            display_function(self.sectors)
+
+        return self.do_tsp_for_each_sector()
