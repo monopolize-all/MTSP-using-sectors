@@ -2,6 +2,7 @@ from math import atan2
 from statistics import variance
 from typing import Iterable
 from python_tsp.exact import solve_tsp_dynamic_programming
+from python_tsp.heuristics import solve_tsp_simulated_annealing
 from numpy import asarray as numpy_asarray
 
 
@@ -121,7 +122,7 @@ class Sector:
 
 
 class TSP:
-
+    DYNAMIC_METHOD_POINT_LIMIT = 17
     def __init__(self, points):
         self.points = points
 
@@ -136,8 +137,12 @@ class TSP:
     def solve(self):
         distance_matrix = self.get_distance_matrix_from_points(self.points)  # Note that each distance here is squared everywhere
         distance_matrix[:, 0] = 0
+        
+        if len(self.points) < self.DYNAMIC_METHOD_POINT_LIMIT:
+            permutation = solve_tsp_dynamic_programming(distance_matrix)[0]
 
-        permutation = solve_tsp_dynamic_programming(distance_matrix)[0]
+        else:
+            permutation = solve_tsp_simulated_annealing(distance_matrix)[0]
 
         solution = [self.points[point_index] for point_index in permutation]
 
