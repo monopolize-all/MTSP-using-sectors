@@ -68,6 +68,8 @@ def generate_random_warehouse_position():
     x1, y1 = MAP_SIZE_FOR_RANDOM_GENERATION//4, MAP_SIZE_FOR_RANDOM_GENERATION//4
     x2, y2 = MAP_SIZE_FOR_RANDOM_GENERATION*3//4, MAP_SIZE_FOR_RANDOM_GENERATION*3//4
     warehouse_position = random.randint(x1, x2), random.randint(y1, y2)
+
+    warehouse_position = 500, 500
     
     return warehouse_position
 
