@@ -46,7 +46,7 @@ class Sector:
         self.weight = sum(village.get_weight() for village in self.villages)
 
     def get_weight(self):
-        return self.weight
+        return self.weight * abs(VILLAGES_PER_SECTOR - len(self.villages))
 
     def get_weight_on_add_village(self, village):
         if village in self.villages:
@@ -63,7 +63,7 @@ class Sector:
             """
             print(debug_message)
 
-        return self.weight + village.weight
+        return (self.weight + village.weight) * abs(VILLAGES_PER_SECTOR - len(self.villages))
 
     def get_weight_on_remove_village(self, village):
         if village not in self.villages:
@@ -80,7 +80,7 @@ class Sector:
             """
             print(debug_message)
 
-        return self.weight - village.weight
+        return (self.weight - village.weight) * abs(VILLAGES_PER_SECTOR - len(self.villages))
 
     def add_village(self, village):
         new_sector_weight = self.get_weight_on_add_village(village)
@@ -190,6 +190,9 @@ class MTSP:
 
         self.villages_per_sector = self.number_of_villages // self.number_of_sectors
 
+        global VILLAGES_PER_SECTOR 
+        VILLAGES_PER_SECTOR = self.villages_per_sector
+
         current_village_index = 0
         while current_village_index < self.number_of_villages:
             current_village_index_limit = current_village_index + self.villages_per_sector
@@ -206,6 +209,9 @@ class MTSP:
     def get_variance_in_sector_weights(self, sector_weights):
         return variance(sector_weights)
 
+    def get_variance_in_sector_village_count(self, sectors):
+        return variance([len(sector.villages for sector in sectors)])
+
     def compare_village_switches(self):
         """
         Finds which village must be moved from one sector to another to reduce the variance in sector weights the most.
@@ -213,6 +219,7 @@ class MTSP:
         sector_weights = [sector.get_weight() for sector in self.sectors]
 
         self.minimum_sector_weights_variance = self.get_variance_in_sector_weights(sector_weights)
+        # self.minimum_sector_village_count_variance = self.get_variance_in_sector_village_count(self.sectors)
         self.village_shifted_for_minimum_variance = None
         self.sector_village_shifted_from_for_minimum_variance = None
         self.sector_village_shifted_to_for_minimum_variance = None
